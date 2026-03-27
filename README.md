@@ -9,7 +9,11 @@ This feature is **exclusive to Hyprland**, since it uses it's IPC socket go the 
 
 While at the project's root, run:
 ```fish
-cargo build --release
+# Build default autohide
+cargo build --release --bin main
+
+# Build autohide with window detect feature
+cargo build --release --bin window_detect
 ```
 The binary file will be located at `target/release/`. Now just execute it and the Waybar should hide itself, unless you hover over it.
 
