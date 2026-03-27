@@ -8,9 +8,9 @@ nix = { version = "0.31.2", features = ["signal"] }
 sysinfo = "0.38.4"
 
 [[bin]]
-name = "main"
+name = "autohide"
 path = "src/main.rs"
 
 [[bin]]
-name = "window_detect"
+name = "autohide_wd"
 path = "src/window_detect.rs"
