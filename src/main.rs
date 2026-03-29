@@ -12,6 +12,8 @@ use util::{
     get_waybar_pid,
     get_pos,
     toggle_waybar,
+    get_windows_fullscreen,
+    get_workspace_windows,
 };
 
 
@@ -60,23 +62,44 @@ fn main() {
     if pid == 0 {
         panic!("The Waybar process could not be found after [{}] tries!", MAX_RETRY+1);
     } else {
+
         // Hide / Show logic
+        
         toggle_waybar(pid);
         let mut ypos = get_pos(&socket_path);  
 
         loop {
-            let mut new_ypos = get_pos(&socket_path);
-            let vel = ypos - new_ypos;
+            let windows = get_workspace_windows(&socket_path);
+            if windows > 0 {
+                let fullscreen = get_windows_fullscreen(&socket_path);
+                if fullscreen == 0 {
+                    let mut new_ypos = get_pos(&socket_path);
+                    let vel = ypos - new_ypos;
 
-            if (vel > VEL_THRESHOLD) && (new_ypos < POS_THRESHOLD) {
-                toggle_waybar(pid);
-                while new_ypos < POS_THRESHOLD {
-                    new_ypos = get_pos(&socket_path);
-                    sleep(Duration::from_millis(SLEEP_TIME as u64));
+                    if (vel > VEL_THRESHOLD) && (new_ypos < POS_THRESHOLD) {
+                        toggle_waybar(pid);
+                        while new_ypos < POS_THRESHOLD {
+                            new_ypos = get_pos(&socket_path);
+                            sleep(Duration::from_millis(SLEEP_TIME as u64));
+                        }
+                        toggle_waybar(pid);
+                    }
+                    ypos = new_ypos;
                 }
-                toggle_waybar(pid);
+            } else {
+                let mut new_ypos = get_pos(&socket_path);
+                let vel = ypos - new_ypos;
+
+                if (vel > VEL_THRESHOLD) && (new_ypos < POS_THRESHOLD) {
+                    toggle_waybar(pid);
+                    while new_ypos < POS_THRESHOLD {
+                        new_ypos = get_pos(&socket_path);
+                        sleep(Duration::from_millis(SLEEP_TIME as u64));
+                    }
+                    toggle_waybar(pid);
+                }
+                ypos = new_ypos;
             }
-            ypos = new_ypos;
             sleep(Duration::from_millis(SLEEP_TIME as u64));
         }
     }

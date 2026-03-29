@@ -13,6 +13,7 @@ use util::{
     get_pos,
     toggle_waybar,
     get_workspace_windows,
+    get_windows_fullscreen,
 };
 
 
@@ -69,20 +70,38 @@ fn main() {
 
         loop {
             let windows = get_workspace_windows(&socket_path);
-            let mut new_ypos = get_pos(&socket_path);
-            let vel = ypos - new_ypos;
+            if windows > 0 {
 
-            // Open when no window is active
-            if windows == 0 {
+                if open {
+                    toggle_waybar(pid);
+                    open = false;
+                }
+
+                let fullscreen = get_windows_fullscreen(&socket_path);
+                if fullscreen == 0 {
+                    let mut new_ypos = get_pos(&socket_path);
+                    let vel = ypos - new_ypos;
+
+                    if (vel > VEL_THRESHOLD) && (new_ypos < POS_THRESHOLD) {
+                        toggle_waybar(pid);
+                        while new_ypos < POS_THRESHOLD {
+                            new_ypos = get_pos(&socket_path);
+                            sleep(Duration::from_millis(SLEEP_TIME as u64));
+                        }
+                        toggle_waybar(pid);
+                    }
+                    ypos = new_ypos;
+                }
+            } else {
+
                 if !open {
                     toggle_waybar(pid);
                     open = true;
                 }
-            } else {
-                    if open {
-                        toggle_waybar(pid);
-                        open = false;
-                    }
+
+                let mut new_ypos = get_pos(&socket_path);
+                let vel = ypos - new_ypos;
+
                 if (vel > VEL_THRESHOLD) && (new_ypos < POS_THRESHOLD) {
                     toggle_waybar(pid);
                     while new_ypos < POS_THRESHOLD {
@@ -90,11 +109,10 @@ fn main() {
                         sleep(Duration::from_millis(SLEEP_TIME as u64));
                     }
                     toggle_waybar(pid);
-                    open = false;
                 }
                 ypos = new_ypos;
-                sleep(Duration::from_millis(SLEEP_TIME as u64));
             }
+            sleep(Duration::from_millis(SLEEP_TIME as u64));
         }
     }
 }
