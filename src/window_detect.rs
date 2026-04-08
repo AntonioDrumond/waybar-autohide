@@ -52,16 +52,16 @@ fn main() {
                 max_retry = args[i+1].parse::<i8>().expect("Invalid number after\"--max-retry\"");
             }
             "--sleep-time" => {
-                sleep_time = args[i+1].parse::<u32>().expect("Invalid number after\"--max-retry\"");
+                sleep_time = args[i+1].parse::<u32>().expect("Invalid number after\"--sleep-time\"");
             }
             "--vel-threshhold" => {
-                vel_threshold = args[i+1].parse::<i16>().expect("Invalid number after\"--max-retry\"");
+                vel_threshold = args[i+1].parse::<i16>().expect("Invalid number after\"--vel-threshhold\"");
             }
             "--pos-threshold" => {
-                pos_threshold = args[i+1].parse::<i16>().expect("Invalid number after\"--max-retry\"");
+                pos_threshold = args[i+1].parse::<i16>().expect("Invalid number after\"--pos-threshold\"");
             }
             "--retry-delay" => {
-                retry_delay = args[i+1].parse::<u8>().expect("Invalid number after\"--max-retry\"");
+                retry_delay = args[i+1].parse::<u8>().expect("Invalid number after\"--retry-delay\"");
             }
             _ => {}
         }
