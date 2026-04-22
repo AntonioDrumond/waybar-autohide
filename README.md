@@ -37,7 +37,8 @@ Optionally, you can use the following arguments (Followed by a suitable value) t
     - Default value: 5
 - `--pos-threshold` -> Mouse position threshold
     - Default value: 60
-- `--sleep-time` -> Time to sleep in milliseconds
+- `--sleep-time` -> Delay between checks in milliseconds (smaller values will decrease the latency of autohide at the cost of your CPU)
     - Default value: 50
-- `--vel-threshold` -> Velocity is NOT normalized with sleep time, so a change in SLEEP_TIME may also require a change in VEL_THRESHOLD
+- `--vel-threshold` -> Minimum velocity to open the Waybar
     - Default value: 50
+    - **Warning**: Velocity is **NOT** normalized with sleep time, so a change in `SLEEP_TIME` may also require a change in `VEL_THRESHOLD`
