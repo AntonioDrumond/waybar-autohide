@@ -204,7 +204,7 @@ pub fn get_windows_fullscreen(socket_path : &String) -> i16 {
         if stream.write_all(b"activewindow").is_ok() {
             let mut buffer = String::new();
             if stream.read_to_string(&mut buffer).is_ok() {
-                let option = buffer.split("\n").nth(15);
+                let option = buffer.split("\n").nth(17);
                 match option { 
                     Some(str) => {
                         let str : String = str.chars()
