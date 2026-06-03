@@ -12,12 +12,12 @@ use autohide::{
     toggle_waybar,
     get_windows_fullscreen,
     get_workspace_windows,
+    find_positions,
     Params,
 };
 
 
 // ===== Methods =====
-
 
 fn main() {
 
@@ -52,6 +52,8 @@ fn main() {
         panic!("The Waybar process could not be found after [{}] tries!", params.max_retry+1);
     } else {
 
+        let (fpos, wpos) = find_positions(&socket_path);
+
         // Hide / Show logic
         toggle_waybar(pid);
         let mut ypos = get_pos(&socket_path);  
@@ -59,9 +61,9 @@ fn main() {
         if !params.window_detect { // No window detect
 
             loop {
-                let windows = get_workspace_windows(&socket_path);
+                let windows = get_workspace_windows(&socket_path, wpos);
                 if windows > 0 {
-                    let fullscreen = get_windows_fullscreen(&socket_path);
+                    let fullscreen = get_windows_fullscreen(&socket_path, fpos);
                     if fullscreen == 0 {
                         let mut new_ypos = get_pos(&socket_path);
                         let vel = ypos - new_ypos;
@@ -97,17 +99,17 @@ fn main() {
         {
 
             loop {
-                let mut windows = get_workspace_windows(&socket_path);
+                let mut windows = get_workspace_windows(&socket_path, wpos);
                 if windows == 0 {
                     toggle_waybar(pid);
                     while windows == 0 { 
-                        windows = get_workspace_windows(&socket_path); 
+                        windows = get_workspace_windows(&socket_path, wpos); 
                         sleep(Duration::from_millis(params.sleep_time as u64));
                     };
                     toggle_waybar(pid);
                 }
 
-                let fullscreen = get_windows_fullscreen(&socket_path);
+                let fullscreen = get_windows_fullscreen(&socket_path, fpos);
                 if fullscreen == 0 {
                     let mut new_ypos = get_pos(&socket_path);
                     let vel = ypos - new_ypos;

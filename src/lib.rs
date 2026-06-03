@@ -110,7 +110,7 @@ impl Default for Params {
 // ===== Methods =====
 
 
-// Searches for Waybar's PID
+/// Searches for Waybar's PID
 pub fn get_waybar_pid(target: &str) -> i32 {
     let mut sys = System::new_all();
 
@@ -131,7 +131,7 @@ pub fn get_waybar_pid(target: &str) -> i32 {
     }
 }
 
-// Sends the signal to Open / Close the Waybar
+/// Sends the signal to Open / Close the Waybar
 pub fn toggle_waybar(raw_pid: i32) {
     match signal::kill(Pid::from_raw(raw_pid), Signal::SIGUSR1) {
         Ok(_) => (),
@@ -139,7 +139,7 @@ pub fn toggle_waybar(raw_pid: i32) {
     }
 }
 
-// Returns the cursors's current Y position using IPC
+/// Returns the cursors's current Y position using IPC
 pub fn get_pos(socket_path : &String) -> i16 {
     if let Ok(mut stream) = UnixStream::connect(socket_path) { // Connection is closed
                                                                // automatically
@@ -165,14 +165,14 @@ pub fn get_pos(socket_path : &String) -> i16 {
     0
 }
 
-// Returns the number of active windows in the current workspace using IPC
-pub fn get_workspace_windows(socket_path : &String) -> i16 {
+/// Returns the number of active windows in the current workspace using IPC
+pub fn get_workspace_windows(socket_path : &String, pos: u8) -> i16 {
     if let Ok(mut stream) = UnixStream::connect(socket_path) { // Connection is closed
                                                                // automatically
         if stream.write_all(b"activeworkspace").is_ok() {
             let mut buffer = String::new();
             if stream.read_to_string(&mut buffer).is_ok() {
-                let option = buffer.split("\n").nth(2);
+                let option = buffer.lines().nth(pos as usize);
                 match option { 
                     Some(str) => {
                         let str : String = str.chars()
@@ -197,14 +197,14 @@ pub fn get_workspace_windows(socket_path : &String) -> i16 {
     0
 }
 
-// Returns if the current active window is in fullscreen
-pub fn get_windows_fullscreen(socket_path : &String) -> i16 {
+/// Returns if the current active window is in fullscreen
+pub fn get_windows_fullscreen(socket_path : &String, pos: u8) -> i16 {
     if let Ok(mut stream) = UnixStream::connect(socket_path) { // Connection is closed
                                                                // automatically
         if stream.write_all(b"activewindow").is_ok() {
             let mut buffer = String::new();
             if stream.read_to_string(&mut buffer).is_ok() {
-                let option = buffer.split("\n").nth(17);
+                let option = buffer.lines().nth(pos as usize);
                 match option { 
                     Some(str) => {
                         let str : String = str.chars()
@@ -227,4 +227,50 @@ pub fn get_windows_fullscreen(socket_path : &String) -> i16 {
     } 
     else { panic!("Could not connect to the socket!"); }
     0
+}
+
+/// Dynamically find the index of the line where fullscreen and windows value is written
+pub fn find_positions(socket_path : &String) ->  (u8, u8) {
+    let mut fpos = 17;   // Fullscreen position
+    let mut wpos = 2;    // Window position
+
+    if let Ok(mut stream) = UnixStream::connect(socket_path) {
+        if stream.write_all(b"activewindow").is_ok() {
+            let mut buffer = String::new();
+            if stream.read_to_string(&mut buffer).is_ok() {
+                fpos = match buffer.lines().position(|line| line.contains("fullscreen:")) {
+                    Some(value) => value as u8,
+                    None => {
+                        eprintln!("Could not find the index of the line where \
+                            the fullscreen status is stored. Using default value");
+                        17
+                    },                     // Default position
+                };
+            } 
+            else { eprintln!("Data retrieve over socket failed!"); }
+        } 
+        else { eprintln!("Data transfer over socket failed!"); }
+    } 
+    else { panic!("Could not connect to the socket!"); }
+
+    if let Ok(mut stream) = UnixStream::connect(socket_path) {
+        if stream.write_all(b"activeworkspace").is_ok() {
+            let mut buffer = String::new();
+            if stream.read_to_string(&mut buffer).is_ok() {
+                wpos = match buffer.lines().position(|line| line.contains("windows:")) {
+                    Some(value) => value as u8,
+                    None => {
+                        eprintln!("Could not find the index of the line where \
+                            the number windows is stored. Using default value");
+                        2
+                    },                     // Default position
+                };
+            } 
+            else { eprintln!("Data retrieve over socket failed!"); }
+        } 
+        else { eprintln!("Data transfer over socket failed!"); }
+    } 
+    else { panic!("Could not connect to the socket!"); }
+
+    (fpos, wpos)
 }
